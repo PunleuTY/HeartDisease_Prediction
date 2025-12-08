@@ -1,0 +1,7 @@
+"0","# Load essential libraries"
+"0","library(tidyverse) # For data manipulation and ggplot2"
+"0","library(knitr)     # For nice table formatting (kable)"
+"0","library(car)       # For ANOVA type II and VIF in regression"
+"0","library(lmtest)    # For residual diagnostics (e.g., Breusch-Pagan)"
+"2","Error in library(lmtest) : there is no package called ‘lmtest’
+"
