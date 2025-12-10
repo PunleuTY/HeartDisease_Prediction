@@ -75,10 +75,273 @@ To address these problems, Our Objectives aim to identify the factors that incre
 # 3. Methodology and Data Preprocessing
 
 ## 3.1. Data Acquisition and Cleaning
+# Import Libraries
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+# import dataset
+data <- read.csv("D:\\year 3\\Statistic Data Analysis\\Project\\heart_disease_uci_dataset.csv", 
+na.strings = c("", "NA", " ",  "\"\""))	
+str(data) # check structure and data type of each column
+
+## • Removing/justifying outliers
+# trestbps column
+data$trestbps[is.na(data$trestbps)] <- median(data$trestbps, na.rm = TRUE) 
+
+# chol column
+data$chol[is.na(data$chol)] <- median(data$chol, na.rm = TRUE) 
+
+# fbs column
+mode_fbs <- names(sort(table(data$fbs), decreasing = TRUE)[1])
+data$fbs[is.na(data$fbs)] <- mode_fbs 
+
+# restecg column
+mode_restecg <- names(sort(table(data$restecg), decreasing = TRUE)[1])
+data$restecg[is.na(data$restecg)] <- mode_restecg
+
+# thalch column
+data$thalch[is.na(data$thalch)] <- median(data$thalch, na.rm = TRUE) 
+
+# exang column
+mode_exang <- names(sort(table(data$exang), decreasing = TRUE)[1])
+data$exang[is.na(data$exang)] <- mode_exang 
+
+# oldpeak column
+data$oldpeak[is.na(data$oldpeak)] <- median(data$oldpeak, na.rm = TRUE)
+
+# slope column - missing values are alot so creating new value in that column called missing
+data$slope <- NULL
+
+# thal column
+data$thal <- NULL
+
+# ca column (missing value ~ 66%)
+data$ca <- NULL # remove ca column due to too many missing values > 50% 
+
+# Create new column and set 0 for have no heart disease, 1 for have heart disease
+data$isHeartDisease <- data$num
+data$isHeartDisease <- ifelse(data$num == 0, 0, 1)
+
+
+# Visualize outlier in each column that have missing value
+# trestbps column
+boxplot(data$trestbps, main="Boxplot of trestbps", ylab="trestbps")
+
+Q1 <- quantile(data$trestbps, 0.25, na.rm = TRUE)
+Q3 <- quantile(data$trestbps, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+outliers <- data$trestbps[!is.na(data$trestbps) & (data$trestbps < lower_bound | data$trestbps > upper_bound)]
+outliers
+
+# chol column
+boxplot(data$chol, main="Boxplot of chol", ylab="chol")
+
+Q1 <- quantile(data$chol, 0.25, na.rm = TRUE)
+Q3 <- quantile(data$chol, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+outliers <- data$chol[!is.na(data$chol) & (data$chol < lower_bound | data$chol > upper_bound)]
+outliers
+
+# fbs column -  there are no outlier because fbs column is logical but i check to see whether TRUE or FALSE is more
+num_true <- sum(data$fbs, na.rm = TRUE)
+num_true
+
+# thalch column
+boxplot(data$thalch, main="Boxplot of thalch", ylab="thalch")
+
+Q1 <- quantile(data$thalch, 0.25, na.rm = TRUE)
+Q3 <- quantile(data$thalch, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+lower_bound
+outliers <- data$thalch[!is.na(data$thalch) & (data$thalch < lower_bound | data$thalch > upper_bound)]
+outliers
+
+# exang column - same as fbs column
+num_true <- sum(data$exang, na.rm = TRUE)
+num_true
+
+# oldpeak column
+boxplot(data$oldpeak, main="Boxplot of oldpeak", ylab="oldpeak")
+
+Q1 <- quantile(data$oldpeak, 0.25, na.rm = TRUE)
+Q3 <- quantile(data$oldpeak, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+outliers <- data$oldpeak[!is.na(data$oldpeak) & (data$oldpeak < lower_bound | data$oldpeak > upper_bound)]
+outliers
+
+# restecg column - no outlier because categorical column but check which level is more frequent
+mode_restecg <- names(sort(table(data$restecg), decreasing = TRUE)[1])
+mode_restecg
+
+# slope column - same as restecg column
+mode_slope <- names(sort(table(data$slope), decreasing = TRUE)[1])
+mode_slope
+
+# thal column - same as restecg column
+mode_thal <- names(sort(table(data$thal), decreasing = TRUE)[1])
+mode_thal
+
 
 ## 3.2. Descriptive Statistic
+# 1. What is the distribution (mean, median, SD, IQR) of numerical variables
+numerical_vars <- c("age", "trestbps", "chol", "thalch", "oldpeak", "isHeartDisease")
+
+summary(data[numerical_vars])  # Gives mean, median, min, max, 1st/3rd quartiles
+
+# For SD and IQR
+sapply(data[numerical_vars], sd, na.rm = TRUE)
+sapply(data[numerical_vars], IQR, na.rm = TRUE)
+
+
+# 2. What are the counts and proportions for categorical variables
+categorical_vars <- c("sex", "cp", "fbs", "restecg", "exang")
+
+for (var in categorical_vars) {
+  t <- table(data[[var]])
+  result <- cbind(Count = t, Proportion = prop.table(t))
+  print(result)
+}
+
+
+# 3. distributions differ between patients with and without heart disease
+# numeric variables
+# age
+#histogram
+hist(data$age[data$isHeartDisease == 0], main = "Age (No Heart Disease)", xlab = "age")
+hist(data$age[data$isHeartDisease == 1], main = "Age (Heart Disease)", xlab = "age")
+
+#boxplot
+ggplot(data, aes(x = factor(isHeartDisease), y = age, fill = factor(isHeartDisease))) +
+  geom_boxplot() +
+  labs(x = "Heart Disease", y = "Age", fill = "Heart Disease") +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  theme_minimal()
+
+# trestbps
+# histogram
+hist(data$trestbps[data$isHeartDisease == 0], main = "Resting BP (No Heart Disease)", xlab = "trestbps")
+hist(data$trestbps[data$isHeartDisease == 1], main = "Resting BP (Heart Disease)", xlab = "trestbps")
+
+# boxplot
+ggplot(data, aes(x = factor(isHeartDisease), y = trestbps, fill = factor(isHeartDisease))) +
+  geom_boxplot() +
+  labs(x = "Heart Disease", y = "Resting BP", fill = "Heart Disease") +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  theme_minimal()
+
+# chol
+#histogram
+hist(data$chol[data$isHeartDisease == 0], main = "Cholesterol (No Heart Disease)", xlab = "chol")
+hist(data$chol[data$isHeartDisease == 1], main = "Cholesterol (Heart Disease)", xlab = "chol")
+
+#boxplot
+ggplot(data, aes(x = factor(isHeartDisease), y = chol, fill = factor(isHeartDisease))) +
+  geom_boxplot() +
+  labs(x = "Heart Disease", y = "Cholesterol", fill = "Heart Disease") +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  theme_minimal()
+
+# thalch
+#histogram
+hist(data$thalach[data$isHeartDisease == 0], main = "Max HR (No Heart Disease)", xlab = "thalach")
+hist(data$thalach[data$isHeartDisease == 1], main = "Max HR (Heart Disease)", xlab = "thalach")
+
+# boxplot
+ggplot(data, aes(x = factor(isHeartDisease), y = thalach, fill = factor(isHeartDisease))) +
+  geom_boxplot() +
+  labs(x = "Heart Disease", y = "Max Heart Rate", fill = "Heart Disease") +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  theme_minimal()
+
+# oldpeak
+# histogram
+hist(data$oldpeak[data$isHeartDisease == 0], main = "Oldpeak (No Heart Disease)", xlab = "oldpeak")
+hist(data$oldpeak[data$isHeartDisease == 1], main = "Oldpeak (Heart Disease)", xlab = "oldpeak")
+
+# boxplot
+ggplot(data, aes(x = factor(isHeartDisease), y = oldpeak, fill = factor(isHeartDisease))) +
+  geom_boxplot() +
+  labs(x = "Heart Disease", y = "Oldpeak", fill = "Heart Disease") +
+  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  theme_minimal()
+
+
 
 ## 3.3. Inferential Statistic
+# demographic
+# age vs isHeartDisease (t-test)
+t.test(data[["age"]] ~ data$isHeartDisease)
+
+# gender vs isHeartDisease
+tbl <- table(data[["sex"]], data$isHeartDisease)
+tbl
+test <- chisq.test(tbl)
+test
+
+
+# clinical features
+# Numeric variables
+num_vars <- c("trestbps", "chol", "thalch", "oldpeak")
+
+# Loop over each numeric variable
+for (var in num_vars) {
+  cat("Variable:", var, "\n")
+  # t-test
+  test <- t.test(data[[var]] ~ data$isHeartDisease)
+  print(test)
+}
+
+p_trestbps <- t.test(data$trestbps ~ data$isHeartDisease)$p.value
+p_chol <- t.test(data$chol ~ data$isHeartDisease)$p.value
+p_thalch <- t.test(data$thalch ~ data$isHeartDisease)$p.value
+p_oldpeak <- t.test(data$oldpeak ~ data$isHeartDisease)$p.value
+
+
+# Combine all p-values
+all_p_numeric <- c(trestbps = p_trestbps, chol = p_chol, thalch = p_thalch, oldpeak = p_oldpeak)
+
+
+min_var_numeric <- names(all_p_numeric)[which.min(all_p)]
+cat("Variable with smallest p-value (most significant):", min_var_numeric, "\n")
+
+
+# Categorical variables
+cat_vars <- c("cp", "fbs", "restecg", "exang")
+
+# Loop over each categorical variable
+for (var in cat_vars) {
+  cat("Variable:", var, "\n")
+  
+  # Create contingency table
+  tbl <- table(data[[var]], data$isHeartDisease)
+  
+  # Chi-squared test
+  test <- chisq.test(tbl)
+}
+
+
+# Categorical variables
+p_cp <- chisq.test(table(data$cp, data$isHeartDisease))$p.value
+p_fbs <- chisq.test(table(data$fbs, data$isHeartDisease))$p.value
+p_restecg <- chisq.test(table(data$restecg, data$isHeartDisease))$p.value
+p_exang <- chisq.test(table(data$exang, data$isHeartDisease))$p.value
+
+# Combine all p-values
+all_p_categorical <- c(cp = p_cp, fbs = p_fbs, restecg = p_restecg, exang = p_exang)
+
+
+min_var_categorical <- names(all_p_categorical)[which.min(all_p)]
+cat("Variable with smallest p-value (most significant):", min_var_categorical, "\n")
+
 
 ## 3.4. Correlation and Regression Analysis
 
