@@ -74,8 +74,12 @@ To address these problems, Our Objectives aim to identify the factors that incre
 
 # 3. Methodology and Data Preprocessing
 
+
 ## 3.1. Data Acquisition and Cleaning
+
+```{r}
 # Import Libraries
+
 library(ggplot2)
 library(tidyr)
 library(dplyr)
@@ -83,7 +87,23 @@ library(dplyr)
 # import dataset
 data <- read.csv("D:\\year 3\\Statistic Data Analysis\\Project\\heart_disease_uci_dataset.csv", 
 na.strings = c("", "NA", " ",  "\"\""))	
+head(data)
 str(data) # check structure and data type of each column
+nrow(data)
+
+data$sex <- as.character(data$sex)
+
+data$exang <- as.logical(data$exang)
+data$fbs <- as.logical(data$fbs)
+
+# Step 3 — Perform Data Cleaning & Preprocessing
+colnames(data)
+
+
+## • Handling missing values
+sum(is.na(data)) # check all missing data
+colSums(is.na(data)) # check all missing data in each column
+
 
 ## • Removing/justifying outliers
 # trestbps column
@@ -124,7 +144,13 @@ data$isHeartDisease <- data$num
 data$isHeartDisease <- ifelse(data$num == 0, 0, 1)
 
 
+
+```
+
+
 # Visualize outlier in each column that have missing value
+
+```{r}
 # trestbps column
 boxplot(data$trestbps, main="Boxplot of trestbps", ylab="trestbps")
 
@@ -135,6 +161,11 @@ lower_bound <- Q1 - 1.5 * IQR
 upper_bound <- Q3 + 1.5 * IQR
 outliers <- data$trestbps[!is.na(data$trestbps) & (data$trestbps < lower_bound | data$trestbps > upper_bound)]
 outliers
+
+outlier_0 <- data$trestbps[!is.na(data$trestbps) & (data$trestbps == 0)]
+outlier_0
+
+data <- outlier_0
 
 # chol column
 boxplot(data$chol, main="Boxplot of chol", ylab="chol")
@@ -189,9 +220,12 @@ mode_slope
 # thal column - same as restecg column
 mode_thal <- names(sort(table(data$thal), decreasing = TRUE)[1])
 mode_thal
-
+```
 
 ## 3.2. Descriptive Statistic
+
+```{r}
+
 # 1. What is the distribution (mean, median, SD, IQR) of numerical variables
 numerical_vars <- c("age", "trestbps", "chol", "thalch", "oldpeak", "isHeartDisease")
 
@@ -214,16 +248,37 @@ for (var in categorical_vars) {
 
 # 3. distributions differ between patients with and without heart disease
 # numeric variables
+counts <- table(data$sex, data$isHeartDisease)
+
+barplot(counts,
+        beside = TRUE,
+        col = c("pink", "lightblue"),
+        main = "Sex Distribution by Heart Disease Status",
+        xlab = "Heart Disease Status",
+        ylab = "Count")
+
+legend("top",
+       inset = c(0, -0.05),
+       legend = rownames(counts),
+       fill = c("pink", "lightblue"),
+       horiz = TRUE,
+       bty = "n")
+
+
+
+data$
+
+
 # age
 #histogram
-hist(data$age[data$isHeartDisease == 0], main = "Age (No Heart Disease)", xlab = "age")
-hist(data$age[data$isHeartDisease == 1], main = "Age (Heart Disease)", xlab = "age")
+hist(data$age[data$isHeartDisease == "No Disease"], main = "Age (No Heart Disease)", xlab = "age")
+hist(data$age[data$isHeartDisease == "Heart Disease"], main = "Age (Heart Disease)", xlab = "age")
 
 #boxplot
 ggplot(data, aes(x = factor(isHeartDisease), y = age, fill = factor(isHeartDisease))) +
   geom_boxplot() +
   labs(x = "Heart Disease", y = "Age", fill = "Heart Disease") +
-  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  scale_fill_manual(values = c("0" = "lightblue", "1" = "red")) +
   theme_minimal()
 
 # trestbps
@@ -235,7 +290,7 @@ hist(data$trestbps[data$isHeartDisease == 1], main = "Resting BP (Heart Disease)
 ggplot(data, aes(x = factor(isHeartDisease), y = trestbps, fill = factor(isHeartDisease))) +
   geom_boxplot() +
   labs(x = "Heart Disease", y = "Resting BP", fill = "Heart Disease") +
-  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  scale_fill_manual(values = c("0" = "blue", "1" = "pink")) +
   theme_minimal()
 
 # chol
@@ -247,7 +302,7 @@ hist(data$chol[data$isHeartDisease == 1], main = "Cholesterol (Heart Disease)", 
 ggplot(data, aes(x = factor(isHeartDisease), y = chol, fill = factor(isHeartDisease))) +
   geom_boxplot() +
   labs(x = "Heart Disease", y = "Cholesterol", fill = "Heart Disease") +
-  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  scale_fill_manual(values = c("0" = "lightblue", "1" = "pink")) +
   theme_minimal()
 
 # thalch
@@ -259,7 +314,7 @@ hist(data$thalach[data$isHeartDisease == 1], main = "Max HR (Heart Disease)", xl
 ggplot(data, aes(x = factor(isHeartDisease), y = thalach, fill = factor(isHeartDisease))) +
   geom_boxplot() +
   labs(x = "Heart Disease", y = "Max Heart Rate", fill = "Heart Disease") +
-  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  scale_fill_manual(values = c("0" = "lightblue", "1" = "pink")) +
   theme_minimal()
 
 # oldpeak
@@ -271,12 +326,54 @@ hist(data$oldpeak[data$isHeartDisease == 1], main = "Oldpeak (Heart Disease)", x
 ggplot(data, aes(x = factor(isHeartDisease), y = oldpeak, fill = factor(isHeartDisease))) +
   geom_boxplot() +
   labs(x = "Heart Disease", y = "Oldpeak", fill = "Heart Disease") +
-  scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
+  scale_fill_manual(values = c("0" = "lightblue", "1" = "pink")) +
   theme_minimal()
 
 
 
+
+# Convert categorical variables to factor with proper labels if needed
+data$cp <- factor(data$cp)
+data$fbs <- factor(data$fbs, labels = c("<=120", ">120"))
+data$restecg <- factor(data$restecg)
+data$exang <- factor(data$exang, labels = c("No", "Yes"))
+data$isHeartDisease <- factor(data$isHeartDisease, labels = c("No Disease", "Heart Disease"))
+
+# --- Chest Pain Type (cp) ---
+ggplot(data, aes(x = cp, fill = isHeartDisease)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Chest Pain Type by Heart Disease", x = "Chest Pain Type", y = "Count", fill = "Heart Disease") +
+  scale_fill_manual(values = c("No Disease" = "lightblue", "Heart Disease" = "pink")) +
+  theme_minimal()
+
+# --- Fasting Blood Sugar (fbs) ---
+ggplot(data, aes(x = fbs, fill = isHeartDisease)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Fasting Blood Sugar by Heart Disease", x = "FBS", y = "Count", fill = "Heart Disease") +
+  scale_fill_manual(values = c("No Disease" = "lightblue", "Heart Disease" = "pink")) +
+  theme_minimal()
+
+# --- Resting ECG (restecg) ---
+ggplot(data, aes(x = restecg, fill = isHeartDisease)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Resting ECG by Heart Disease", x = "Resting ECG", y = "Count", fill = "Heart Disease") +
+  scale_fill_manual(values = c("No Disease" = "lightblue", "Heart Disease" = "pink")) +
+  theme_minimal()
+
+# --- Exercise-Induced Angina (exang) ---
+ggplot(data, aes(x = exang, fill = isHeartDisease)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Exercise-Induced Angina by Heart Disease", x = "Exang", y = "Count", fill = "Heart Disease") +
+  scale_fill_manual(values = c("No Disease" = "lightblue", "Heart Disease" = "pink")) +
+  theme_minimal()
+
+```
+
+
 ## 3.3. Inferential Statistic
+
+```{r}
+
 # demographic
 # age vs isHeartDisease (t-test)
 t.test(data[["age"]] ~ data$isHeartDisease)
@@ -342,6 +439,7 @@ all_p_categorical <- c(cp = p_cp, fbs = p_fbs, restecg = p_restecg, exang = p_ex
 min_var_categorical <- names(all_p_categorical)[which.min(all_p)]
 cat("Variable with smallest p-value (most significant):", min_var_categorical, "\n")
 
+```
 
 ## 3.4. Correlation and Regression Analysis
 
