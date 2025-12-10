@@ -1,80 +1,4 @@
----
-title: " A Statistical Analysis: Heart Disease Predection"
-author: "Group Members: TY Punleu, Song Kimleangchhay Khy Pichsereyvathanak, Ouk Vatana, Srey Sitharath"
-date: "`r format(Sys.Date(), '%B %d, %Y')`"
-output: 
-  pdf_document:
-    toc: true
-    number_sections: true
-    latex_engine: xelatex
-  html_document:
-    toc: true
-    code_folding: hide
----
-
-```{r setup, include=FALSE}
-# This chunk sets global options for the notebook.
-# It ensures all necessary packages are loaded and controls how code/output is displayed.
-knitr::opts_chunk$set(
-  echo = TRUE,      # Show the code in the final report
-  warning = FALSE,  # Hide warnings
-  message = FALSE,  # Hide messages
-  fig.width = 7,    # Default width for figures
-  fig.height = 5,   # Default height for figures
-  cache = FALSE     # Set to TRUE only if processing time is long
-)
-```
-
 ```{r}
-# TODO - Load essential libraries
-
-```
-
-# 1.Introduction
-
-## 1.1. Problem Statement
-
-Cardiovascular diseases remain the leading cause of death globally, including in Cambodia and Southeast Asia. Early identification of high-risk individuals using simple clinical measurements (age, cholesterol, blood pressure, etc.) can enable timely intervention and save lives. This project applies the full statistical workflow to the classic UCI Heart Disease dataset to uncover which factors most strongly predict the presence of heart disease and to build an interpretable prediction model. 
-## 1.2. Research Objectives 
-To address these problems, Our Objectives aim to identify the factors that increase the risk and help support early diagnosis and prevention by using statistical methods 
-• To analyze if demographic (age or gender) influence heart disease 
-• Find out which clinical features such as chest paint type, blood pressure, blood sugar, heart rate influence heart disease with strong affect 
-
-## 1.3. Research Questions 
-• Does age or gender influence heart disease the most? 
-• Which clinical features that most prone to affect to the heart disease? 
-
-# 2. Dataset 
-## Numerical Variables
-
-| Column   | Description                                          |
-|----------|------------------------------------------------------|
-| id       | Unique id for each patient                           |
-| age      | Age of the patient in years                          |
-| origin   | Place of study                                       |
-| trestbps | Resting blood pressure                               |
-| chol     | Serum cholesterol in mg/dl                           |
-| thalch   | Maximum heart rate achieved                          |
-| oldpeak  | ST depression induced by exercises relative to rest  |
-| slope    | The slope of the peak exercise ST segment            |
-| ca       | Number of major vessels (0–3) colored by fluoroscopy |
-| num      | The predicted attribute                              |
-
-## Categorical Variables
-
-| Column | Description |
-|-------------|-----------------------------------------------------------|
-| sex | Male/Female |
-| cp | Chest pain type (typical angina, atypical angina, non-anginal, asymptomatic) |
-| fbs | Fasting blood (True/False) |
-| restecg | Resting electrocardiographic results (normal, stt abnormality, lv hypertrophy) |
-| exang | Exercise-induced angina (True/False) |
-| ca | Number of major vessels (0–3) colored by fluoroscopy |
-| thal | normal, fixed defect; reversible defect |
-
-# 3. Methodology and Data Preprocessing
-
-## 3.1. Data Acquisition and Cleaning
 # Import Libraries
 library(ggplot2)
 library(tidyr)
@@ -85,44 +9,14 @@ data <- read.csv("D:\\year 3\\Statistic Data Analysis\\Project\\heart_disease_uc
 na.strings = c("", "NA", " ",  "\"\""))	
 str(data) # check structure and data type of each column
 
-## • Removing/justifying outliers
-# trestbps column
-data$trestbps[is.na(data$trestbps)] <- median(data$trestbps, na.rm = TRUE) 
 
-# chol column
-data$chol[is.na(data$chol)] <- median(data$chol, na.rm = TRUE) 
+# Step 3 — Perform Data Cleaning & Preprocessing
+colnames(data)
 
-# fbs column
-mode_fbs <- names(sort(table(data$fbs), decreasing = TRUE)[1])
-data$fbs[is.na(data$fbs)] <- mode_fbs 
 
-# restecg column
-mode_restecg <- names(sort(table(data$restecg), decreasing = TRUE)[1])
-data$restecg[is.na(data$restecg)] <- mode_restecg
-
-# thalch column
-data$thalch[is.na(data$thalch)] <- median(data$thalch, na.rm = TRUE) 
-
-# exang column
-mode_exang <- names(sort(table(data$exang), decreasing = TRUE)[1])
-data$exang[is.na(data$exang)] <- mode_exang 
-
-# oldpeak column
-data$oldpeak[is.na(data$oldpeak)] <- median(data$oldpeak, na.rm = TRUE)
-
-# slope column - missing values are alot so creating new value in that column called missing
-data$slope <- NULL
-
-# thal column
-data$thal <- NULL
-
-# ca column (missing value ~ 66%)
-data$ca <- NULL # remove ca column due to too many missing values > 50% 
-
-# Create new column and set 0 for have no heart disease, 1 for have heart disease
-data$isHeartDisease <- data$num
-data$isHeartDisease <- ifelse(data$num == 0, 0, 1)
-
+## • Handling missing value  s
+sum(is.na(data)) # check all missing data
+colSums(is.na(data)) # check all missing data in each column
 
 # Visualize outlier in each column that have missing value
 # trestbps column
@@ -191,7 +85,53 @@ mode_thal <- names(sort(table(data$thal), decreasing = TRUE)[1])
 mode_thal
 
 
-## 3.2. Descriptive Statistic
+
+## • Removing/justifying outliers
+# trestbps column
+data$trestbps[is.na(data$trestbps)] <- median(data$trestbps, na.rm = TRUE) 
+
+# chol column
+data$chol[is.na(data$chol)] <- median(data$chol, na.rm = TRUE) 
+
+# fbs column
+mode_fbs <- names(sort(table(data$fbs), decreasing = TRUE)[1])
+data$fbs[is.na(data$fbs)] <- mode_fbs 
+
+# restecg column
+mode_restecg <- names(sort(table(data$restecg), decreasing = TRUE)[1])
+data$restecg[is.na(data$restecg)] <- mode_restecg
+
+# thalch column
+data$thalch[is.na(data$thalch)] <- median(data$thalch, na.rm = TRUE) 
+
+# exang column
+mode_exang <- names(sort(table(data$exang), decreasing = TRUE)[1])
+data$exang[is.na(data$exang)] <- mode_exang 
+
+# oldpeak column
+data$oldpeak[is.na(data$oldpeak)] <- median(data$oldpeak, na.rm = TRUE)
+
+# slope column - missing values are alot so creating new value in that column called missing
+data$slope <- NULL
+
+# thal column
+data$thal <- NULL
+
+# ca column (missing value ~ 66%)
+data$ca <- NULL # remove ca column due to too many missing values > 50% 
+
+# Create new column and set 0 for have no heart disease, 1 for have heart disease
+data$isHeartDisease <- data$num
+data$isHeartDisease <- ifelse(data$num == 0, 0, 1)
+
+
+## • Creating new variables (if needed) - not sure yet
+
+## • Filtering or subsetting data - not sure yet
+```
+
+```{r}
+# Step 4 — Descriptive Statistics
 # 1. What is the distribution (mean, median, SD, IQR) of numerical variables
 numerical_vars <- c("age", "trestbps", "chol", "thalch", "oldpeak", "isHeartDisease")
 
@@ -274,9 +214,14 @@ ggplot(data, aes(x = factor(isHeartDisease), y = oldpeak, fill = factor(isHeartD
   scale_fill_manual(values = c("0" = "blue", "1" = "red")) +
   theme_minimal()
 
+```
 
 
-## 3.3. Inferential Statistic
+
+
+
+```{r}
+# Step 5 - Inferential statistics
 # demographic
 # age vs isHeartDisease (t-test)
 t.test(data[["age"]] ~ data$isHeartDisease)
@@ -342,7 +287,5 @@ all_p_categorical <- c(cp = p_cp, fbs = p_fbs, restecg = p_restecg, exang = p_ex
 min_var_categorical <- names(all_p_categorical)[which.min(all_p)]
 cat("Variable with smallest p-value (most significant):", min_var_categorical, "\n")
 
+```
 
-## 3.4. Correlation and Regression Analysis
-
-## 3.5. Intepretation and Recommendation
